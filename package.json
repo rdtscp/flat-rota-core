@@ -1,0 +1,19 @@
+{
+  "name": "flat-rota",
+  "version": "1.0.0",
+  "description": "Webapp to manage cleaning/resources",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acwilson96/flat-rota.git"
+  },
+  "author": "Alexander Wilson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/acwilson96/flat-rota/issues"
+  },
+  "homepage": "https://github.com/acwilson96/flat-rota#readme"
+}
