@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/acwilson96/flat-rota/issues"
   },
-  "homepage": "https://github.com/acwilson96/flat-rota#readme"
+  "homepage": "https://github.com/acwilson96/flat-rota#readme",
+  "dependencies": {
+    "express": "^4.15.4"
+  }
 }
