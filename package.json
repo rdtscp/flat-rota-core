@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/acwilson96/flat-rota-core#readme",
   "dependencies": {
+    "body-parser": "^1.18.0",
     "express": "^4.15.4",
     "socket.io": "^2.0.3"
   }
