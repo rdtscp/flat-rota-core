@@ -1,12 +1,15 @@
-var express = require('express');
-var http = require('http')
-var socketio = require('socket.io');
+var express     = require('express');
+var http        = require('http')
+var socketio    = require('socket.io');
+var bodyParser  = require('body-parser');
 
-var app = express();
-var server = http.Server(app);
-var websocket = socketio(server, { origins: '*:*'});
+var app         = express();
+var server      = http.Server(app);
+var websocket   = socketio(server, { origins: '*:*'});
 
-server.listen(3000, () => console.log('listening on *:3000'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+server.listen(1337, () => console.log('listening on *:1337'));
 
 /***************************************\
             Server Web App
@@ -14,6 +17,10 @@ server.listen(3000, () => console.log('listening on *:3000'));
 
 app.get('/', (req, res) => {
     res.send('Hello World');
+});
+
+app.post('/token', (req, res) => {
+    res.send({valid: false});
 });
 
 /***************************************\
