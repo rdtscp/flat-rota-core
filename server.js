@@ -1,38 +1,40 @@
+/***************************************\
+              Server Setup
+\***************************************/
+
 var express     = require('express');
-var http        = require('http')
-var socketio    = require('socket.io');
 var bodyParser  = require('body-parser');
 
 var app         = express();
-var server      = http.Server(app);
-var websocket   = socketio(server, { origins: '*:*'});
+
+var server      = require('http').Server(app);
+var io          = require('socket.io')(server);
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-server.listen(1337, () => console.log('listening on *:1337'));
-
-/***************************************\
-            Server Web App
-\***************************************/
-
-app.get('/', (req, res) => {
-    res.send('Hello World');
-});
-
-app.post('/token', (req, res) => {
-    res.send({valid: false});
-});
+app.use(bodyParser.urlencoded({extended: false}));
 
 /***************************************\
                   API
 \***************************************/
 
-// Connect
-websocket.on('connection', (socket) => {
-    socket.emit('notification', 'Hello world!');
-    console.log('A client just joined on', socket.id);
+app.post('/token', (req, res) => {
+    res.send({valid: false});
 });
 
-websocket.on('authenticate', (data) => {
-    console.log('auth')
+app.post('/user', (req, res) => {
+
 });
+
+/***************************************\
+                 Socket
+\***************************************/
+
+io.on('connection', (socket) => {
+    socket.on('my other event', (data) => {
+        console.log(data);
+    });
+});
+
+
+//*************************************\\
+app.listen(1337, () => { console.log('Server Started on Port 1337...'); })
