@@ -2,27 +2,26 @@
               Server Setup
 \***************************************/
 
-var express     = require('express');
+var app         = require('express')();
 var bodyParser  = require('body-parser');
 
-var app         = express();
+app.use(bodyParser.json());
 
 var server      = require('http').Server(app);
 var io          = require('socket.io')(server);
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
 
 /***************************************\
                   API
 \***************************************/
 
 app.post('/token', (req, res) => {
-    res.send({valid: false});
+    res.send({valid: true});
 });
 
 app.post('/user', (req, res) => {
-
+    console.log(req.body)
+    res.send({valid: true})
 });
 
 /***************************************\
