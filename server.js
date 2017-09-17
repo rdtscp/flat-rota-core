@@ -16,12 +16,15 @@ var io          = require('socket.io')(server);
 \***************************************/
 
 app.post('/token', (req, res) => {
-    res.send({valid: true});
+    console.log('token')
+    console.log(req.body)
+    res.send({valid: false});
 });
 
-app.post('/user', (req, res) => {
+app.post('/login', (req, res) => {
+    console.log('login')
     console.log(req.body)
-    res.send({valid: true})
+    res.send({token: 'foobar'})
 });
 
 /***************************************\
