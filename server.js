@@ -23,27 +23,30 @@ const Resource  = require('./models/resource.js');
 \***************************************/
 
 // RECEIVES: authToken of a User.
-// RETURNS:  True/False if that token is still valid.
+// RETURNS:  True/False if that authToken is still valid.
 app.post('/token', (req, res) => {
-    var token = req.body.token;
+    var authToken = req.body.authToken;
     User.findOne({
-        token: token
+        authToken: authToken
     }).exec((err, user) => {
         if (err) console.log(err);
         else if (user) {
+            console.log('authToken was valid.')
             res.send({ valid: true });
         }
         else {
+            console.log('authToken was invalid.')
             res.send({ valid: false });
         }
     })
 });
 
 // RECEIVES: Username and Password of a specific User.
-// RETURNS:  Error/Warning message, token of User account.
+// RETURNS:  Error/Warning message, authToken of User account.
 app.post('/login', (req, res) => {
     uname = req.body.username;
     pword = req.body.password;
+    console.log('Login request: ' + uname);
     // Find the requested User.
     User.findOne({
         username: uname
@@ -64,7 +67,7 @@ app.post('/login', (req, res) => {
                     res.send({
                         err: false,
                         warning: false,
-                        token: user.token
+                        authToken: user.authToken
                     });
                 } else {
                     res.send({
@@ -79,12 +82,22 @@ app.post('/login', (req, res) => {
 });
 
 // RECEIVES: Username and Password to create a User under.
-// RETURNS:  Error/Warning message, token of created account.
+// RETURNS:  Error/Warning message, authToken of created account.
 app.post('/register', (req, res) => {
     uname = req.body.username;
     pword = req.body.password;
+    console.log('Register request: ' + uname);
+    if (uname == undefined || pword == undefined) {
+        res.send({
+            err: false,
+            warning: true,
+            msg: 'Invalid username or password'
+        });
+    }
     // Check User does not exist.
-    User.exists(uname, (err, user) => {
+    User.findOne({
+        username: uname
+    }).exec((err, user) => {
         if (err) console.log(err);
         else if (user) {
             res.send({
@@ -98,25 +111,26 @@ app.post('/register', (req, res) => {
             User.hashPassword(pword, (err, hash) => {
                 if (err) console.log(err);
                 else {
-                    // Generate them an auth token.
-                    User.generateToken((err, token) => {
+                    // Generate them an auth authToken.
+                    User.generateToken((err, authToken) => {
                         if (err) console.log(err);
                         else {
                             // Create the new User.
                             var user = new User({
                                 username: uname,
                                 password: hash,
-                                token: token
+                                authToken: authToken
                             });
                             // Save the new user.
                             user.save((err) => {
                                 if (err) console.log(err);
                                 else {
+                                    console.log('Created user: ' + user.username + '. Sending token: ' + authToken);
                                     res.send({
                                         err: false,
                                         warning: false,
                                         msg: 'Succesfully created account.',
-                                        token: token
+                                        authToken: authToken
                                     });
                                 }
                             });

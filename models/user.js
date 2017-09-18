@@ -13,16 +13,6 @@ var userSchema = mongoose.Schema ({
     authToken: String
 });
 
-// Performs a query for a username and returns the user.
-userSchema.statics.exists = (username, cb) => {
-    User.find({
-        username: username
-    }).exec((err, user) => {
-        if (err) cb(err);
-        else cb(null, user);
-    });
-}
-
 // Checks if a password and a hash match.
 userSchema.statics.checkPassword = (password, hash, cb) => {
     bcrypt.compare(password, hash, (err, res) => {
