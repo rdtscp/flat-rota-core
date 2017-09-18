@@ -142,6 +142,37 @@ app.post('/register', (req, res) => {
     });
 });
 
+app.post('/resource/all', (req, res) => {
+    console.log('requesting resources')
+    Resource.find().exec((err, resources) => {
+        console.log(resources)
+        res.send(resources);
+    })
+});
+
+// RECEIVES: Name, Price,Description, Quantity params.
+// RETURNS: New Resource item in JSON.
+app.post('/resource/new', (req, res) => {
+    name        = req.body.name;
+    price       = req.body.price;
+    desc        = req.body.desc;
+    quantity    = req.body.quantity;
+    console.log(req.body)
+    var newResource = new Resource({
+        name: name,
+        price: price,
+        description: desc,
+        quantity: quantity
+    });
+    newResource.save((err) => {
+        if (err) console.log(err);
+        else {
+            res.send({done: true})
+        }
+    });
+
+})
+
 /***************************************\
                  Socket
 \***************************************/
