@@ -31,11 +31,9 @@ app.post('/token', (req, res) => {
     }).exec((err, user) => {
         if (err) console.log(err);
         else if (user) {
-            console.log('authToken was valid.')
             res.send({ valid: true });
         }
         else {
-            console.log('authToken was invalid.')
             res.send({ valid: false });
         }
     })
@@ -46,7 +44,6 @@ app.post('/token', (req, res) => {
 app.post('/login', (req, res) => {
     uname = req.body.username;
     pword = req.body.password;
-    console.log('Login request: ' + uname);
     // Find the requested User.
     User.findOne({
         username: uname
@@ -86,7 +83,6 @@ app.post('/login', (req, res) => {
 app.post('/register', (req, res) => {
     uname = req.body.username;
     pword = req.body.password;
-    console.log('Register request: ' + uname);
     if (uname == undefined || pword == undefined) {
         res.send({
             err: false,
@@ -125,7 +121,6 @@ app.post('/register', (req, res) => {
                             user.save((err) => {
                                 if (err) console.log(err);
                                 else {
-                                    console.log('Created user: ' + user.username + '. Sending token: ' + authToken);
                                     res.send({
                                         err: false,
                                         warning: false,
@@ -143,9 +138,7 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/resource/all', (req, res) => {
-    console.log('requesting resources')
     Resource.find().exec((err, resources) => {
-        console.log(resources)
         res.send(resources);
     })
 });
@@ -157,7 +150,6 @@ app.post('/resource/new', (req, res) => {
     price       = req.body.price;
     desc        = req.body.desc;
     quantity    = req.body.quantity;
-    console.log(req.body)
     var newResource = new Resource({
         name: name,
         price: price,
