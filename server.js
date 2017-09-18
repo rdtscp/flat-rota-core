@@ -4,11 +4,17 @@
 
 var app         = require('express')();
 var bodyParser  = require('body-parser');
-
-app.use(bodyParser.json());
+var mongoose    = require('mongoose');
 
 var server      = require('http').Server(app);
 var io          = require('socket.io')(server);
+
+app.use(bodyParser.json());
+mongoose.connect('mongodb://localhost:27017/flatrota', {useMongoClient: true});
+
+/* Import Models */
+const User      = require('./models/user.js');
+const Resource  = require('./models/resource.js');
 
 
 /***************************************\
@@ -22,9 +28,14 @@ app.post('/token', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-    console.log('login')
+    console.log('Login')
     console.log(req.body)
     res.send({token: 'foobar'})
+});
+
+app.post('/register', (req, res) => {
+    console.log('Register')
+    console.log(req.body);
 });
 
 /***************************************\
