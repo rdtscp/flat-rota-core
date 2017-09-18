@@ -174,11 +174,12 @@ app.post('/resource/new', (req, res) => {
 })
 
 /***************************************\
-                 Socket
+           Socket/Notif Handler
 \***************************************/
 
 io.on('connection', (socket) => {
-    socket.on('my other event', (data) => {
+    console.log('A client just joined on', socket.id);
+    socket.on('subscribe_notifs', (data) => {
         console.log(data);
     });
 });
