@@ -24,17 +24,26 @@ const Resource  = require('./models/resource.js');
 
 var notifQ = [];
 
+// Connect to Server via Socket.
 io.on('connection', (socket) => {
+    /* Login to the Server via Socket.
+     *  params: {
+     *      data: The User's authToken.
+     *  }
+     */ 
     socket.on('login', (data) => {
+        // Find User based on provided authToken.
         User.findOne({
             authToken: data
         }).exec((err, user) => {
             if (err) console.log(err);
             else if (user) {
                 console.log(user.username + ' has logged in.');
+                // Subscribe User's Socket Room.
                 socket.join(user.username);
-                console.log(notifQ);
+                /* Check if this User has any pending Notifications. */
                 for (var i=0; i < notifQ.length; i++) {
+                    // If we have a notification for this User, send it to their Socket Room.
                     if (notifQ[i].name == user.username) {
                         console.log('sending notification : ' + user.username + ': It is your turn to buy: ' + notifQ[i].quantity + ' of ' + notifQ[i].resource);
                         io.to(user.username).emit('inc_notif', notifQ[i]);
@@ -43,10 +52,11 @@ io.on('connection', (socket) => {
             }
         });
     });
-    socket.on('received_notif', (data) => {
-        console.log('notification received: ' + data.name + ': It is your turn to buy: ' + data.quantity + ' of ' + data.resource);
+    /* Acknowledge receipt of a Notification. */
+    socket.on('received_notif', (notification) => {
+        console.log('notification received: ' + notification.name + ': It is your turn to buy: ' + notification.quantity + ' of ' + notification.resource);
         // Remove this notification from the Queue.
-        var removeIndex = notifQ.indexOf(data);
+        var removeIndex = notifQ.indexOf(notification);
         notifQ.splice(removeIndex, 1);
     })
 });
@@ -57,35 +67,31 @@ io.on('connection', (socket) => {
 \***************************************/
 
 // RECEIVES: authToken of a User.
-// RETURNS:  True/False if that authToken is still valid.
+// RETURNS : True/False if that authToken is valid for a User.
 app.post('/token', (req, res) => {
     var authToken = req.body.authToken;
     User.findOne({
         authToken: authToken
     }).exec((err, user) => {
         if (err) console.log(err);
-        else if (user) {
-            res.send({ valid: true });
-        }
-        else {
-            res.send({ valid: false });
-        }
+        else if (user) res.send({ valid: true });
+        else res.send({ valid: false });
     })
 });
 
 // RECEIVES: Username and Password of a specific User.
-// RETURNS:  Error/Warning message, authToken of User account.
+// RETURNS : Error/Warning message, authToken of User account.
 app.post('/login', (req, res) => {
     uname = req.body.username;
     pword = req.body.password;
-    console.log(uname + ': login')
+    console.log('Login Request for: ' + uname);
     // Find the requested User.
     User.findOne({
         username: uname
     }).exec((err, user) => {
         if (err) console.log(err);
         else if (!user) {
-            console.log('invalid uname or pword')
+            console.log('Invalid username or password')
             res.send({
                 err: false,
                 warning: true,
@@ -97,7 +103,7 @@ app.post('/login', (req, res) => {
             User.checkPassword(pword, user.password, (err, match) => {
                 if (err) console.log(err);
                 else if (match) {
-                    console.log('sending ' + user.username + ' their token')
+                    console.log('Sending ' + user.username + ' their authToken.')
                     res.send({
                         err: false,
                         warning: false,
@@ -116,7 +122,7 @@ app.post('/login', (req, res) => {
 });
 
 // RECEIVES: Username and Password to create a User under.
-// RETURNS:  Error/Warning message, authToken of created account.
+// RETURNS : Error/Warning message, authToken of created account.
 app.post('/register', (req, res) => {
     uname = req.body.username;
     pword = req.body.password;
@@ -127,6 +133,7 @@ app.post('/register', (req, res) => {
             msg: 'Invalid username or password'
         });
     }
+    console.log('Register Request for: ' + uname);
     // Check User does not exist.
     User.findOne({
         username: uname
@@ -144,7 +151,7 @@ app.post('/register', (req, res) => {
             User.hashPassword(pword, (err, hash) => {
                 if (err) console.log(err);
                 else {
-                    // Generate them an auth authToken.
+                    // Generate User an authToken.
                     User.generateToken((err, authToken) => {
                         if (err) console.log(err);
                         else {
@@ -156,23 +163,24 @@ app.post('/register', (req, res) => {
                             });
                             // Save the new user.
                             user.save((err) => {
-                                if (err) console.log(err);
+                                if (err) res.send({ err: true, warning: false, msg: err });
                                 else {
                                     res.send({
                                         err: false,
                                         warning: false,
-                                        msg: 'Succesfully created account.',
+                                        msg: 'Succesfully Created Account.',
                                         authToken: authToken
                                     });
                                 }
                             });
-                            // Register this User for all resources.
+                            /* Register this User for all resources. */
+                            // Get all Resources.
                             Resource.find().exec((err, resources) => {
+                                // Loop through the Resources.
                                 resources.forEach((resource) => {
+                                    // Add the new User to the current resource Rota.
                                     resource.rota.push(user.username);
-                                    resource.save((err) => {
-                                        if (err) console.log(err);
-                                    })
+                                    resource.save((err) => { if (err) console.log(err); });
                                 });
                             });
                         }
@@ -183,23 +191,28 @@ app.post('/register', (req, res) => {
     });
 });
 
+// RECEIVES: Post request.
+// RETURNS :
 app.post('/resource/all', (req, res) => {
+    // Get all resources; respond to client.
     Resource.find().exec((err, resources) => {
         res.send(resources);
     })
 });
 
 // RECEIVES: Name, Price,Description, Quantity params.
-// RETURNS:  New Resource item in JSON.
+// RETURNS : New Resource item in JSON.
 app.post('/resource/new', (req, res) => {
+    // Parse Params.
     name        = req.body.name;
     price       = req.body.price;
     desc        = req.body.desc;
     quantity    = req.body.quantity;
+    // Get all Users (Their username attribute only).
     User.find({}, {username: 1, _id: 0}).exec((err, users) => {
-        console.log(users);
+        // Create a list of usernames.
         var rota = users.map(u => u.name);
-        console.log(users);
+        // Declare the new Resource.
         var newResource = new Resource({
             name: name,
             price: price,
@@ -207,20 +220,23 @@ app.post('/resource/new', (req, res) => {
             quantity: quantity,
             rota: rota
         });
+        // Save the new Resource.
         newResource.save((err) => {
-            if (err) console.log(err);
+            if (err) res.send({ err: true, warning: false, msg: err });
             else {
                 console.log('Created new item:');
-                console.log(newResource)
-                res.send({done: true})
+                console.log(newResource);
+                // Send a blank response
+                res.send({ err: false, warning: false, msg: 'Created Resource: ' + name });
             }
         }); 
     });
 });
 
 // RECEIVES: authToken, resourceID, quantity params.
-// RETURNS:  If the topup was succesful.
+// RETURNS : If the topup was succesful.
 app.post('/resource/topup', (req, res) => {
+    // Parse Params.
     var authToken  = req.body.authToken;
     var resourceID = req.body.id;
     var quantity   = req.body.quantity;
@@ -232,18 +248,18 @@ app.post('/resource/topup', (req, res) => {
             msg: 'authToken, resourceID, or quantity was undefined.'
         });
     } else {
+        // Find the User that is topping up this Resource.
         User.findOne({
             authToken: authToken
         }).exec((err, user) => {
-            console.log(user)
-            if (err) console.log(err);
+            if (err) res.send({ err: true, warning: false, msg: err });
             else if (user) {
                 var uname = user.username;
-                console.log('Topup request.')
-                console.log(uname)
+                // Get the resource.
                 Resource.findById(resourceID).exec((err, resource) => {
-                    if (err) console.log(err);
+                    if (err) res.send({ err: true, warning: false, msg: err });
                     else if (resource) {
+                        // Update the Rota for this resource according to the User topping up, and how much they topped up.
                         Resource.updateRota(resource, uname, quantity, (err, updtdResource) => {
                             if (err) res.send({err: true, warning: false, msg: err});
                             else {
@@ -254,24 +270,59 @@ app.post('/resource/topup', (req, res) => {
                                 });
                             }
                         });
+                    } else {
+                        res.send({
+                            err: false,
+                            warning: true,
+                            msg: 'Resource to Topup could not be found.'
+                        });
                     }
                 });
+            }
+            else {
+                res.send({
+                    err: false,
+                    warning: true,
+                    msg: 'Your account could not be retrieved, please try logging in again.'
+                })
             }
         });
     }
 });
 
+// RECEIVED: resourceID, authToken of requester.
+// RETURNS : A message indicating if the notification has been sent/queued.
 app.post('/resource/runout', (req, res) => {
+    // Parse Params.
     var resourceID = req.body.id;
-    Resource.findById(resourceID).exec((err, resource) => {
-        if (err) console.log(err);
-        else if (resource) {
-            console.log('Run out of resource:');
-            console.log(resource);
-            console
-            notifQ.push({name: resource.rota[0], quantity: resource.quantity, resource: resource.name});
-            io.to(resource.rota[0]).emit('inc_notif', notifQ[0]);
-            res.send({done: true})
+    var authToken  = req.body.authToken;
+    // Get the requesting User.
+    User.findOne({
+        authToken: authToken
+    }).exec((err, user) => {
+        if (err) res.send({ err: true, warning: false, msg: err });
+        else if (user) {
+            // Get the specified Resource.
+            Resource.findById(resourceID).exec((err, resource) => {
+                if (err) res.send({ err: true, warning: false, msg: err });
+                else if (resource) {
+                    var nextUserName = resource.rota[0];
+                    console.log('Request to topup ' + resource.name + ' from ' + user.username);
+                    // Add this notification to the queue.
+                    notifQ.push({name: nextUserName, quantity: resource.quantity, resource: resource.name});
+                    // Try publishing this notification to the User.
+                    io.to(nextUserName).emit('inc_notif', notifQ[0]);
+                    res.send({ err: false, warning: false, msg: 'Flatmate has been queued/sent a notification!' });
+                } else {
+                    res.send({ err: false, warning: true, msg: 'Attempted to mark a Resource that does not exist as depleted.' });
+                }
+            });
+        } else {
+            res.send({
+                err: false,
+                warning: true,
+                msg: 'Your account could not be retrieved, please try logging in again.'
+            })
         }
     });
 });
