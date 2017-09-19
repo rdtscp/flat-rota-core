@@ -18,6 +18,38 @@ mongoose.connect('mongodb://localhost:27017/flatrota', {useMongoClient: true});
 const User      = require('./models/user.js');
 const Resource  = require('./models/resource.js');
 
+/***************************************\
+           Socket/Notif Handler
+\***************************************/
+
+var notifQ = [];
+
+io.on('connection', (socket) => {
+    socket.on('login', (data) => {
+        User.findOne({
+            authToken: data
+        }).exec((err, user) => {
+            if (err) console.log(err);
+            else if (user) {
+                console.log(user.username + ' has logged in.');
+                socket.join(user.username);
+                for (var i=0; i < notifQ.length; i++) {
+                    if (notifQ[i].name == user.username) {
+                        console.log('sending notification : ' + user.username + ': It is your turn to buy: ' + notifQ[i].quantity + ' of ' + notifQ[i].resource);
+                        io.to(user.username).emit('inc_notif', notifQ[i]);
+                    }
+                }
+            }
+        });
+    });
+    socket.on('received_notif', (data) => {
+        console.log('notification received: ' + data.name + ': It is your turn to buy: ' + data.quantity + ' of ' + data.resource);
+        // Remove this notification from the Queue.
+        var removeIndex = notifQ.indexOf(data);
+        notifQ.splice(removeIndex, 1);
+    })
+});
+
 
 /***************************************\
                   API
@@ -133,6 +165,15 @@ app.post('/register', (req, res) => {
                                     });
                                 }
                             });
+                            // Register this User for all resources.
+                            Resource.find().exec((err, resources) => {
+                                resources.forEach((resource) => {
+                                    resource.rota.push(user.username);
+                                    resource.save((err) => {
+                                        if (err) console.log(err);
+                                    })
+                                });
+                            });
                         }
                     });
                 }
@@ -148,57 +189,87 @@ app.post('/resource/all', (req, res) => {
 });
 
 // RECEIVES: Name, Price,Description, Quantity params.
-// RETURNS: New Resource item in JSON.
+// RETURNS:  New Resource item in JSON.
 app.post('/resource/new', (req, res) => {
     name        = req.body.name;
     price       = req.body.price;
     desc        = req.body.desc;
     quantity    = req.body.quantity;
-    var newResource = new Resource({
-        name: name,
-        price: price,
-        description: desc,
-        quantity: quantity
+    User.find({}, {username: 1, _id: 0}).exec((err, users) => {
+        console.log(users);
+        var newResource = new Resource({
+            name: name,
+            price: price,
+            description: desc,
+            quantity: quantity,
+            rota: [users.map((user) => user.username)]
+        });
+        newResource.save((err) => {
+            if (err) console.log(err);
+            else {
+                console.log('Created new item:');
+                console.log(newResource)
+                res.send({done: true})
+            }
+        }); 
     });
-    newResource.save((err) => {
+});
+
+// RECEIVES: authToken, resourceID, quantity params.
+// RETURNS:  If the topup was succesful.
+app.post('/resource/topup', (req, res) => {
+    var authToken  = req.body.authToken;
+    var resourceID = req.body.id;
+    var quantity   = req.body.quantity;
+    // Check we have all params.
+    if (authToken == undefined || resourceID == undefined || quantity == undefined) {
+        res.send({
+            err: false,
+            warning: true,
+            msg: 'authToken, resourceID, or quantity was undefined.'
+        });
+    } else {
+        User.findOne({
+            authToken: authToken
+        }).exec((err, user) => {
+            console.log(user)
+            if (err) console.log(err);
+            else if (user) {
+                var uname = user.username;
+                console.log('Topup request.')
+                console.log(uname)
+                Resource.findById(resourceID).exec((err, resource) => {
+                    if (err) console.log(err);
+                    else if (resource) {
+                        Resource.updateRota(resource, uname, quantity, (err, updtdResource) => {
+                            if (err) res.send({err: true, warning: false, msg: err});
+                            else {
+                                res.send({
+                                    err: false,
+                                    warning: false,
+                                    msg: 'You have successfully topped up ' + quantity + ' of ' + updtdResource.name
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+
+app.post('/resource/runout', (req, res) => {
+    var resourceID = req.body.id;
+    Resource.findById(resourceID).exec((err, resource) => {
         if (err) console.log(err);
-        else {
+        else if (resource) {
+            console.log('Run out of resource:');
+            console.log(resource);
+            console
+            notifQ.push({name: resource.rota[0], quantity: resource.quantity, resource: resource.name});
             res.send({done: true})
         }
     });
-
-})
-
-/***************************************\
-           Socket/Notif Handler
-\***************************************/
-
-var notifQ = [{name: 'Alex', quantity: '1 Roll', resource: 'Kitchen Roll'}];
-
-io.on('connection', (socket) => {
-    socket.on('login', (data) => {
-        User.findOne({
-            authToken: data
-        }).exec((err, user) => {
-            if (err) console.log(err);
-            else if (user) {
-                console.log(user.username + ' has logged in.');
-                socket.join(user.username);
-                for (var i=0; i < notifQ.length; i++) {
-                    if (notifQ[i].name == user.username) {
-                        console.log('sending notification : ' + user.username + ': It is your turn to buy: ' + notifQ[i].quantity + ' of ' + notifQ[i].resource);
-                        io.to(user.username).emit('inc_notif', notifQ[i]);
-                    }
-                }
-            }
-        });
-    });
-    socket.on('received_notif', (data) => {
-        console.log('notification received: ' + data.name + ': It is your turn to buy: ' + data.quantity + ' of ' + data.resource);
-        // Remove this notification from the Queue.
-        var removeIndex = notifQ.indexOf(data);
-        notifQ.splice(removeIndex, 1);
-    })
 });
 
 
