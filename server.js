@@ -5,9 +5,10 @@
 var app         = require('express')();
 var bodyParser  = require('body-parser');
 var mongoose    = require('mongoose');
+var socketio = require('socket.io');
 
 var server      = require('http').Server(app);
-var io          = require('socket.io')(server);
+var io          = socketio(server);
 
 app.use(bodyParser.json());
 mongoose.Promise = require('bluebird');
@@ -176,6 +177,10 @@ io.on('connection', (socket) => {
     });
 });
 
+app.get('/test', (req, res) => {
+    res.send("<script src='/socket.io/socket.io.js'></script><script>var socket = io('http://localhost:1337');socket.on('connect', function(){});socket.on('event', function(data){});socket.on('disconnect', function(){});</script>")
+})
+
 
 //*************************************\\
-app.listen(1337, () => { console.log('Server Started on Port 1337...'); })
+server.listen(1337, () => { console.log('Server Started on Port 1337...'); })
