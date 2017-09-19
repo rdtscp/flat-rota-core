@@ -270,6 +270,7 @@ app.post('/resource/runout', (req, res) => {
             console.log(resource);
             console
             notifQ.push({name: resource.rota[0], quantity: resource.quantity, resource: resource.name});
+            io.to(resource.rota[0]).emit('inc_notif', notifQ[0]);
             res.send({done: true})
         }
     });
