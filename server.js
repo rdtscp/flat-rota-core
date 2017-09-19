@@ -202,7 +202,7 @@ app.post('/resource/new', (req, res) => {
             price: price,
             description: desc,
             quantity: quantity,
-            rota: [users.map((user) => user.username)]
+            rota: [users.map((user) => {return user.username})]
         });
         newResource.save((err) => {
             if (err) console.log(err);
