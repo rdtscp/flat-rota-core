@@ -5,7 +5,7 @@
 var app         = require('express')();
 var bodyParser  = require('body-parser');
 var mongoose    = require('mongoose');
-var socketio = require('socket.io');
+var socketio    = require('socket.io');
 
 var server      = require('http').Server(app);
 var io          = socketio(server);
@@ -170,16 +170,27 @@ app.post('/resource/new', (req, res) => {
            Socket/Notif Handler
 \***************************************/
 
+var notifQ = [{user: 'Alex', quantity: '1 Roll', resource: 'Kitchen Roll'}];
+
 io.on('connection', (socket) => {
     console.log('A client just joined on', socket.id);
-    socket.on('subscribe_notifs', (data) => {
-        console.log(data);
+    socket.on('login', (data) => {
+        User.findOne({
+            authToken: data
+        }).exec((err, user) => {
+            if (err) console.log(err);
+            else if (user) {
+                socket.join(user.username);
+                for (var i=0; i < notifQ.length; i++) {
+                    if (notifQ[i].name == user.username) {
+                        console.log('send notification to user: ' + user.username);
+                        io.to(user.username).emit('inc_notif', 'It is your turn to buy: ' + notifQ[i].quantity + ' of ' + notifQ[i].resource);
+                    }
+                }
+            }
+        });
     });
 });
-
-app.get('/test', (req, res) => {
-    res.send("<script src='/socket.io/socket.io.js'></script><script>var socket = io('http://localhost:1337');socket.on('connect', function(){});socket.on('event', function(data){});socket.on('disconnect', function(){});</script>")
-})
 
 
 //*************************************\\
