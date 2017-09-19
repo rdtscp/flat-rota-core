@@ -26,6 +26,7 @@ var notifQ = [];
 
 // Connect to Server via Socket.
 io.on('connection', (socket) => {
+    var Username;
     /* Login to the Server via Socket.
      *  params: {
      *      data: The User's authToken.
@@ -38,6 +39,7 @@ io.on('connection', (socket) => {
         }).exec((err, user) => {
             if (err) console.log(err);
             else if (user) {
+                Username = user.username;
                 console.log(user.username + ' has logged in.');
                 // Subscribe User's Socket Room.
                 socket.join(user.username);
@@ -60,6 +62,10 @@ io.on('connection', (socket) => {
         notifQ.splice(removeIndex, 1);
         console.log('Notification Queue:');
         console.log(notifQ);
+    });
+    /* Handle Log Out */
+    socket.on('disconnect', () => {
+        console.log(Username + ' has disconnected.');
     })
 });
 
@@ -194,7 +200,7 @@ app.post('/register', (req, res) => {
 });
 
 // RECEIVES: Post request.
-// RETURNS :
+// RETURNS : All resources.
 app.post('/resource/all', (req, res) => {
     // Get all resources; respond to client.
     Resource.find().exec((err, resources) => {
@@ -308,16 +314,19 @@ app.post('/resource/runout', (req, res) => {
             Resource.findById(resourceID).exec((err, resource) => {
                 if (err) res.send({ err: true, warning: false, msg: err });
                 else if (resource) {
-                    var nextUserName = resource.rota[0];
-                    console.log('Request to topup ' + resource.name + ' from ' + user.username);
+                    console.log('Request to topup [' + resource.name + '] from: ' + user.username);
                     console.log('Rota State:');
                     console.log(resource.rota);
                     // Add this notification to the queue.
+                    var nextUserName = resource.rota[0];                    
                     notifQ.push({name: nextUserName, quantity: resource.quantity, resource: resource.name});
+                    
                     console.log('Notification Queue:');
                     console.log(notifQ);
+                    var nextNotif = notifQ[notifQ.length - 1];
                     // Try publishing this notification to the User.
-                    io.to(nextUserName).emit('inc_notif', notifQ[0]);
+                    io.to(nextUserName).emit('inc_notif', nextNotif);
+                    console.log('sending notification : ' + nextNotif.name + ': It is your turn to buy: ' + nextNotif.quantity + ' of ' + nextNotif.resource);
                     res.send({ err: false, warning: false, msg: 'Flatmate has been queued/sent a notification!' });
                 } else {
                     res.send({ err: false, warning: true, msg: 'Attempted to mark a Resource that does not exist as depleted.' });
