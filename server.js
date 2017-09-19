@@ -180,6 +180,7 @@ io.on('connection', (socket) => {
         }).exec((err, user) => {
             if (err) console.log(err);
             else if (user) {
+                console.log(user.username + ' has logged in.');
                 socket.join(user.username);
                 for (var i=0; i < notifQ.length; i++) {
                     if (notifQ[i].name == user.username) {
