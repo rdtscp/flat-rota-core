@@ -45,12 +45,14 @@ app.post('/token', (req, res) => {
 app.post('/login', (req, res) => {
     uname = req.body.username;
     pword = req.body.password;
+    console.log(uname + ': login')
     // Find the requested User.
     User.findOne({
         username: uname
     }).exec((err, user) => {
         if (err) console.log(err);
         else if (!user) {
+            console.log('invalid uname or pword')
             res.send({
                 err: false,
                 warning: true,
@@ -62,6 +64,7 @@ app.post('/login', (req, res) => {
             User.checkPassword(pword, user.password, (err, match) => {
                 if (err) console.log(err);
                 else if (match) {
+                    console.log('sending ' + user.username + ' their token')
                     res.send({
                         err: false,
                         warning: false,
@@ -173,7 +176,6 @@ app.post('/resource/new', (req, res) => {
 var notifQ = [{name: 'Alex', quantity: '1 Roll', resource: 'Kitchen Roll'}];
 
 io.on('connection', (socket) => {
-    console.log('A client just joined on', socket.id);
     socket.on('login', (data) => {
         User.findOne({
             authToken: data
@@ -184,13 +186,19 @@ io.on('connection', (socket) => {
                 socket.join(user.username);
                 for (var i=0; i < notifQ.length; i++) {
                     if (notifQ[i].name == user.username) {
-                        console.log('send notification to user: ' + user.username);
-                        io.to(user.username).emit('inc_notif', 'It is your turn to buy: ' + notifQ[i].quantity + ' of ' + notifQ[i].resource);
+                        console.log('sending notification : ' + user.username + ': It is your turn to buy: ' + notifQ[i].quantity + ' of ' + notifQ[i].resource);
+                        io.to(user.username).emit('inc_notif', notifQ[i]);
                     }
                 }
             }
         });
     });
+    socket.on('received_notif', (data) => {
+        console.log('notification received: ' + data.name + ': It is your turn to buy: ' + data.quantity + ' of ' + data.resource);
+        // Remove this notification from the Queue.
+        var removeIndex = notifQ.indexOf(data);
+        notifQ.splice(removeIndex, 1);
+    })
 });
 
 
