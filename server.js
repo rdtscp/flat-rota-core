@@ -33,6 +33,7 @@ io.on('connection', (socket) => {
             else if (user) {
                 console.log(user.username + ' has logged in.');
                 socket.join(user.username);
+                console.log(notifQ);
                 for (var i=0; i < notifQ.length; i++) {
                     if (notifQ[i].name == user.username) {
                         console.log('sending notification : ' + user.username + ': It is your turn to buy: ' + notifQ[i].quantity + ' of ' + notifQ[i].resource);
@@ -197,12 +198,14 @@ app.post('/resource/new', (req, res) => {
     quantity    = req.body.quantity;
     User.find({}, {username: 1, _id: 0}).exec((err, users) => {
         console.log(users);
+        var rota = users.map(u => u.name);
+        console.log(users);
         var newResource = new Resource({
             name: name,
             price: price,
             description: desc,
             quantity: quantity,
-            rota: [users.map((user) => {return user.username})]
+            rota: rota
         });
         newResource.save((err) => {
             if (err) console.log(err);
