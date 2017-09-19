@@ -58,6 +58,8 @@ io.on('connection', (socket) => {
         // Remove this notification from the Queue.
         var removeIndex = notifQ.indexOf(notification);
         notifQ.splice(removeIndex, 1);
+        console.log('Notification Queue:');
+        console.log(notifQ);
     })
 });
 
@@ -211,7 +213,7 @@ app.post('/resource/new', (req, res) => {
     // Get all Users (Their username attribute only).
     User.find({}, {username: 1, _id: 0}).exec((err, users) => {
         // Create a list of usernames.
-        var rota = users.map(u => u.name);
+        var rota = users.map(u => u.username);
         // Declare the new Resource.
         var newResource = new Resource({
             name: name,
@@ -308,8 +310,12 @@ app.post('/resource/runout', (req, res) => {
                 else if (resource) {
                     var nextUserName = resource.rota[0];
                     console.log('Request to topup ' + resource.name + ' from ' + user.username);
+                    console.log('Rota State:');
+                    console.log(resource.rota);
                     // Add this notification to the queue.
                     notifQ.push({name: nextUserName, quantity: resource.quantity, resource: resource.name});
+                    console.log('Notification Queue:');
+                    console.log(notifQ);
                     // Try publishing this notification to the User.
                     io.to(nextUserName).emit('inc_notif', notifQ[0]);
                     res.send({ err: false, warning: false, msg: 'Flatmate has been queued/sent a notification!' });
