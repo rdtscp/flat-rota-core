@@ -170,7 +170,7 @@ app.post('/resource/new', (req, res) => {
            Socket/Notif Handler
 \***************************************/
 
-var notifQ = [{user: 'Alex', quantity: '1 Roll', resource: 'Kitchen Roll'}];
+var notifQ = [{name: 'Alex', quantity: '1 Roll', resource: 'Kitchen Roll'}];
 
 io.on('connection', (socket) => {
     console.log('A client just joined on', socket.id);
