@@ -69,6 +69,22 @@ io.on('connection', (socket) => {
     })
 });
 
+/***************************************\
+                Web Page
+\***************************************/
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+})
+
+// RECEIVES: GET request.
+// RETURNS : All resources.
+app.get('/resource/all', (req, res) => {
+    // Get all resources; respond to client.
+    Resource.find().exec((err, resources) => {
+        res.json(resources);
+    })
+});
 
 /***************************************\
                   API
@@ -205,15 +221,6 @@ app.post('/resource/all', (req, res) => {
     // Get all resources; respond to client.
     Resource.find().exec((err, resources) => {
         res.send(resources);
-    })
-});
-
-// RECEIVES: GET request.
-// RETURNS : All resources.
-app.get('/resource/all', (req, res) => {
-    // Get all resources; respond to client.
-    Resource.find().exec((err, resources) => {
-        res.json(resources);
     })
 });
 
