@@ -75,7 +75,11 @@ io.on('connection', (socket) => {
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
-})
+});
+
+app.get('/code.js', (req, res) => {
+    res.sendFile(__dirname + '/code.js');
+});
 
 // RECEIVES: GET request.
 // RETURNS : All resources.
