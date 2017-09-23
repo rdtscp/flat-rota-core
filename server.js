@@ -208,6 +208,15 @@ app.post('/resource/all', (req, res) => {
     })
 });
 
+// RECEIVES: GET request.
+// RETURNS : All resources.
+app.get('/resource/all', (req, res) => {
+    // Get all resources; respond to client.
+    Resource.find().exec((err, resources) => {
+        res.json(resources);
+    })
+});
+
 // RECEIVES: Name, Price,Description, Quantity params.
 // RETURNS : New Resource item in JSON.
 app.post('/resource/new', (req, res) => {
