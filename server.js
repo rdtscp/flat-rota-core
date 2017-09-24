@@ -11,6 +11,7 @@ var server      = require('http').Server(app);
 var io          = socketio(server);
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }))
 mongoose.Promise = require('bluebird');
 mongoose.connect('mongodb://localhost:27017/flatrota', {useMongoClient: true});
 
@@ -236,6 +237,10 @@ app.post('/resource/new', (req, res) => {
     price       = req.body.price;
     desc        = req.body.desc;
     quantity    = req.body.quantity;
+    if (name == undefined) return res.send({error: 'Cannot have a nameless item'});
+    if (price == undefined) price = '.';
+    if (desc == undefined) desc = '.';
+    if (quantity == undefined) quantity = '.';
     // Get all Users (Their username attribute only).
     User.find({}, {username: 1, _id: 0}).exec((err, users) => {
         // Create a list of usernames.
