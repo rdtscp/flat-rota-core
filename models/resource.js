@@ -19,10 +19,24 @@ resourceSchema.statics.generateRota = (creator, cb) => {
 resourceSchema.statics.updateRota = (resource, uname, quantity, cb) => {
     var rota = resource.rota;
     console.log(rota);
-    // Remove this user.
-    var index = rota.indexOf(uname);
+    // Get index of this User and remove them.
+    var index  = rota.indexOf(uname);
+    var isLast = (index == rota.length - 1);
     rota.splice(index, 1);
 
+    // If the index is the last entry; "duplicate" the rota.
+    console.log(index)
+    if (isLast) {
+        var usersFound = [];
+        rota.forEach((user) => {
+            if (usersFound.indexOf(user) > -1) {
+                // We have already found this user.
+            } else {
+                rota.push(user);
+                usersFound.push(user);
+            }
+        });
+    }
 
     // Re-add the user.
     rota.push(uname);
