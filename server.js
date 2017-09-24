@@ -293,13 +293,14 @@ app.post('/resource/topup', (req, res) => {
                     if (err) res.send({ err: true, warning: false, msg: err });
                     else if (resource) {
                         // Update the Rota for this resource according to the User topping up, and how much they topped up.
-                        Resource.updateRota(resource, uname, quantity, (err, updtdResource) => {
+                        Resource.updateRota(resource, uname, quantity, (err, updtdRota) => {
                             if (err) res.send({err: true, warning: false, msg: err});
                             else {
+                                resource.rota = updtdRota;
+                                resource.save((err) => {if (err) console.log(err)})
                                 res.send({
                                     err: false,
-                                    warning: false,
-                                    msg: 'You have successfully topped up ' + quantity + ' of ' + updtdResource.name
+                                    warning: false
                                 });
                             }
                         });
