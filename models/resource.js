@@ -18,12 +18,16 @@ resourceSchema.statics.generateRota = (creator, cb) => {
 // Update rota.
 resourceSchema.statics.updateRota = (resource, uname, quantity, cb) => {
     var rota = resource.rota;
-    console.log(rota)
+    console.log(rota);
+    // Remove this user.
     var index = rota.indexOf(uname);
-    var newRota = rota.splice(index, 1);
-    newRota = replicateArray(newRota, quantity);
-    newRota.push(uname);
-    console.log(newRota);
+    rota.splice(index, 1);
+
+
+    // Re-add the user.
+    rota.push(uname);
+    console.log(rota);
+    cb(null, rota);
 }
 
 // Credit to: https://stackoverflow.com/a/30229099
