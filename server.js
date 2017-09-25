@@ -7,6 +7,8 @@ var bodyParser  = require('body-parser');
 var mongoose    = require('mongoose');
 var socketio    = require('socket.io');
 
+var expressGraphQL = require('express-graphql');
+
 var server      = require('http').Server(app);
 var io          = socketio(server);
 
@@ -18,6 +20,18 @@ mongoose.connect('mongodb://localhost:27017/flatrota', {useMongoClient: true});
 /* Import Models */
 const User      = require('./models/user.js');
 const Resource  = require('./models/resource.js');
+const { Topup, TopupType }     = require('./models/topup.js');
+
+/***************************************\
+                GraphQL
+\***************************************/
+
+const schema = require('./graphql/queries.js');
+
+app.use('/graphql', expressGraphQL({
+    schema: schema,
+    graphiql: true
+}));
 
 /***************************************\
            Socket/Notif Handler
@@ -302,6 +316,13 @@ app.post('/resource/topup', (req, res) => {
                                     err: false,
                                     warning: false
                                 });
+                                topup = new Topup({
+                                    resource: resource.name,
+                                    name: user.username,
+                                    date: new Date().toDateString()
+                                });
+                                console.log(topup);
+                                topup.save((err) => {if (err) console.log(err)})
                             }
                         });
                     } else {
@@ -366,6 +387,10 @@ app.post('/resource/runout', (req, res) => {
             })
         }
     });
+});
+
+app.get('/topups', (req, res) => {
+
 });
 
 
