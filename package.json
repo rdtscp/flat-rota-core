@@ -21,6 +21,8 @@
     "bluebird": "^3.5.0",
     "body-parser": "^1.18.0",
     "express": "^4.15.4",
+    "express-graphql": "^0.6.11",
+    "graphql": "^0.11.3",
     "mongoose": "^4.11.11",
     "socket.io": "^2.0.3"
   }
