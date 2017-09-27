@@ -4,7 +4,9 @@
   "description": "Webapp API to manage cleaning/resources",
   "main": "server.js",
   "scripts": {
-    "start": "node server"
+    "start": "node server",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -24,6 +26,8 @@
     "express-graphql": "^0.6.11",
     "graphql": "^0.11.3",
     "mongoose": "^4.11.11",
-    "socket.io": "^2.0.3"
-  }
+    "socket.io": "^2.0.3",
+    "snyk": "^1.41.1"
+  },
+  "snyk": true
 }
