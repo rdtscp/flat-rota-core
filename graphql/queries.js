@@ -27,7 +27,7 @@ const RootQuery = new GraphQLObjectType({
                 date: { type: GraphQLString }
             },
             resolve(parentValue, args) {
-                new Promise((resolve, reject) => {
+                return new Promise((resolve, reject) => {
                     var count = 0;
                     for(var prop in args)
                     {
@@ -36,12 +36,14 @@ const RootQuery = new GraphQLObjectType({
                     if (count > 0) {
                         console.log(args);
                         Topup.find(args).then((topups) => {
+                            console.log(topups);
                             resolve(topups);
                         });
                     }
                     else {
                         console.log('No args');
                         Topup.find().then((topups) => {
+                            console.log(topups);
                             resolve(topups);
                         });
                     }
