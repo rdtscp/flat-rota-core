@@ -27,7 +27,18 @@ const RootQuery = new GraphQLObjectType({
                 }).then(topups => topups);
                 
             }
-        }
+        },
+        topups: {
+            type: TopupType,
+            args: {
+                resource: { type: GraphQLString },
+                name: { type: GraphQLString },
+                date: { type: GraphQLString }
+            },
+            resolve(parentValue, args) {
+                Topup.find(args).then(topups => topups);
+            }
+        },
     }
 });
 
