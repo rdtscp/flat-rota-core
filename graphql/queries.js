@@ -27,14 +27,25 @@ const RootQuery = new GraphQLObjectType({
                 date: { type: GraphQLString }
             },
             resolve(parentValue, args) {
-                var count = 0;
-                for(var prop in args)
-                {
-                    count++;
-                }
-                console.log(count);
-                if (count > 0) { console.log(args); Topup.find(args).then(topups => topups); }
-                else { console.log('No args'); Topup.find().then(topups => topups); }
+                new Promise((resolve, reject) => {
+                    var count = 0;
+                    for(var prop in args)
+                    {
+                        count++;
+                    }
+                    if (count > 0) {
+                        console.log(args);
+                        Topup.find(args).then((topups) => {
+                            resolve(topups);
+                        });
+                    }
+                    else {
+                        console.log('No args');
+                        Topup.find().then((topups) => {
+                            resolve(topups);
+                        });
+                    }
+                }).then(topups => topups);
             }
         },
     }
