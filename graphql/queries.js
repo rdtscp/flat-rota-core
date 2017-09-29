@@ -21,22 +21,14 @@ const RootQuery = new GraphQLObjectType({
     fields: {
         topups: {
             type: new GraphQLList(TopupType),
-            resolve(parentValue, args) {
-                return new Promise((resolve, reject) => {
-                    Topup.find().then(topups => resolve(topups));
-                }).then(topups => topups);
-                
-            }
-        },
-        topups: {
-            type: TopupType,
             args: {
                 resource: { type: GraphQLString },
                 name: { type: GraphQLString },
                 date: { type: GraphQLString }
             },
             resolve(parentValue, args) {
-                Topup.find(args).then(topups => topups);
+                if (args) Topup.find(args).then(topups => topups);
+                else Topup.find().then(topups => topups);
             }
         },
     }
