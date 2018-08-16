@@ -80,6 +80,28 @@ module.exports.routes = {
     action: 'update'
   },
 
+  // Flat Controller
+
+  'post /flat/get': {
+    controller: 'FlatController',
+    action: 'get'
+  },
+
+  'post /flat/create': {
+    controller: 'FlatController',
+    action: 'create'
+  },
+
+  'post /flat/destroy': {
+    controller: 'FlatController',
+    action: 'destroy'
+  },
+
+  'post /flat/update': {
+    controller: 'FlatController',
+    action: 'update'
+  },
+
 
   //  ╦ ╦╔═╗╔╗ ╦ ╦╔═╗╔═╗╦╔═╔═╗
   //  ║║║║╣ ╠╩╗╠═╣║ ║║ ║╠╩╗╚═╗
