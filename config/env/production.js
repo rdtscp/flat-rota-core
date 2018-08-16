@@ -48,7 +48,7 @@ module.exports = {
     'GET /csrfToken': {
       action: 'security/grant-csrf-token',
       cors: {
-        allowOrigins: [ 'https://flat-rota-web.herokuapp.com' ],
+        allowOrigins: [ 'https://flat-rota.herokuapp.com' ],
       }
     },
   },
@@ -94,7 +94,7 @@ module.exports = {
     *                                                                          *
     ***************************************************************************/
     cors: {
-      allowOrigins: [ 'https://flat-rota-web.herokuapp.com' ],
+      allowOrigins: [ 'https://flat-rota.herokuapp.com' ],
     },
 
   },
@@ -194,7 +194,7 @@ module.exports = {
     * > Be sure to use the right protocol!  ("http://" vs. "https://")         *
     *                                                                          *
     ***************************************************************************/
-    onlyAllowOrigins: [ 'https://flat-rota-web.herokuapp.com' ]
+    onlyAllowOrigins: [ 'https://flat-rota.herokuapp.com' ]
 
     /***************************************************************************
     *                                                                          *
