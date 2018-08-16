@@ -27,6 +27,11 @@ module.exports.policies = {
 
   DeviceController: {
     destroy: 'SessionAuth'
+  },
+
+  FlatController: {
+    get:    'SessionAuth',
+    create: 'SessionAuth',
   }
 
 };
