@@ -25,6 +25,11 @@ module.exports = {
     devices: {
       collection: 'Device',
       via: 'owner'
+    },
+
+    flats: {
+      collection: 'Flat',
+      via: 'members'
     }
 
   },
