@@ -34,9 +34,9 @@ module.exports = {
 
   },
 
-  customToJSON: () => {
+  customToJSON: function(record) {
     // Return a shallow copy of this record with the password removed.
-    return _.omit(this, ['password']);
+    return _.omit(this, ['password'])
   },
 
   // Called before a User model is created, will hash the password; returns error if hashing fails.
