@@ -11,12 +11,29 @@ module.exports = {
 
   /* post /flat/get */
   get: function (req, res) {
-    return res.json({
-      error: true,
-      warning: false,
-      message: 'Unknown Server Error, Please Refresh & Try Again',
-      content: null
-    });
+    const user      = req.options.user;
+    const id        = req.param('flatID');
+
+    if (user.flats.some(flat => (flat.id === id))) {
+      Flat.findOne({ id })
+      .populateAll()
+      .then((flat) => {
+        return res.json({
+          error: false,
+          warning: false,
+          message: null,
+          content: flat,
+        })
+      })
+    }
+    else {
+      return res.json({
+        error: true,
+        warning: false,
+        message: 'You do not have permission to view this Flat.',
+        content: null
+      });
+    }
   },
 
   /* post /flat/create */
@@ -47,13 +64,15 @@ module.exports = {
       })
       .fetch()
       .then(newFlat => {
+        let messageExtra = '';
+        if (members.length !== flatMembers.length) {
+          messageExtra = ', however some users did not exist. You can always add them to the Flat later.'
+        }
         return res.json({
           error: false,
           warning: false,
-          message: 'Created New Flat',
-          content: {
-            newFlat,
-          }
+          message: 'Created Flat ' + newFlat.name + messageExtra,
+          content: newFlat,
         })
       })
     })
