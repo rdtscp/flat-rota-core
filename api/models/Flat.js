@@ -18,6 +18,11 @@ module.exports = {
     members: {
       collection: 'User',
       via: 'flats'
+    },
+
+    items: {
+      collection: 'Item',
+      via: 'flat'
     }
 
   },
