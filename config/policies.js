@@ -32,6 +32,13 @@ module.exports.policies = {
   FlatController: {
     get:    'SessionAuth',
     create: 'SessionAuth',
+  },
+
+  ItemController: {
+    get:      'SessionAuth',
+    create:   'SessionAuth',
+    destroy:  'SessionAuth',
+    update:   'SessionAuth'
   }
 
 };
