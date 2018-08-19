@@ -38,7 +38,8 @@ module.exports.policies = {
     get:      'SessionAuth',
     create:   'SessionAuth',
     destroy:  'SessionAuth',
-    update:   'SessionAuth'
+    update:   'SessionAuth',
+    setstatus:'SessionAuth',
   }
 
 };
