@@ -24,6 +24,14 @@ module.exports = {
 
     rota: {
       type:       'string'
+    },
+
+    notification: {
+      type:       'boolean'
+    },
+
+    lastBumped: {
+      type:       'number'
     }
 
   },
