@@ -124,6 +124,11 @@ module.exports.routes = {
     action: 'update'
   },
 
+  'post /item/setstatus': {
+    controller: 'ItemController',
+    action: 'setstatus'
+  },
+
 
   //  ╦ ╦╔═╗╔╗ ╦ ╦╔═╗╔═╗╦╔═╔═╗
   //  ║║║║╣ ╠╩╗╠═╣║ ║║ ║╠╩╗╚═╗
