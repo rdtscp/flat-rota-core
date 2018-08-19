@@ -20,18 +20,7 @@ var accountUpdatedMsg     = 'Account succesfully updated. If you changed your pa
 
 module.exports = {
 
-  /* 'post /user/get'
-   * Retrieves a User Model if authenticated.
-   *
-   * Returns json:
-   * {
-   *     error: [ true | false ],
-   *     warning: [ true | false ],
-   *     content: Error, Warning or Success message,
-   *     user: The User model of this requester
-   * }
-   *
-   */
+  /* post /user/get */
   get: function (req, res) {
     /* Input Validation */
     if (req.options.user === null || req.options.user === undefined) {
@@ -50,16 +39,7 @@ module.exports = {
     });
   },
 
-  /* 'post /user/create'
-   * Check if a user exists under post param "username". If not, creates a new one.
-   *
-   * Returns json:
-   * {
-   *     error: [ true | false ],
-   *     warning: [ true | false ],
-   *     content: Error, Warning or Success message; E.G. [ 'User already exists' | 'Password must contain 1 uppercase' ],
-   * }
-   */
+  /* post /user/create */
   create: function (req, res) {
 
     // Parse POST for User params.
@@ -136,19 +116,7 @@ module.exports = {
     });
   },
 
-  /* 'post /user/destroy'
-   * Destroys a User model if requested is authenticated.
-   *
-   * Returns json:
-   * {
-   *     error: [ true | false ],
-   *     warning: [ true | false ],
-   *     message: Error, Warning or Success message; E.G. [ 'Account Deleted.' ],
-   *     exists: [ true | false ],
-   *     user: User.js model
-   * }
-   *
-   */
+  /* post /user/destroy */
   destroy: function (req, res) {
     // Parse POST for User params.
     let user      = req.options.user;
@@ -177,18 +145,7 @@ module.exports = {
     });
   },
 
-  /* 'post /user/update'
-   * Updates info on a User model if request is authenticated.
-   *
-   * Returns json:
-   * {
-   *     error: [ true | false ],
-   *     warning: [ true | false ],
-   *     message: Error, Warning or Success message; E.G. [ 'Account Updated', 'Invalid new Password' ],
-   *     exists: [ true | false ],
-   *     user: User.js model
-   * }
-   */
+  /* post /user/update */
   update: function (req, res) {
     // Parse POST for User params.
     var valuesToUpdate      = {};
@@ -207,7 +164,7 @@ module.exports = {
     if (valuesToUpdate.password === null || valuesToUpdate.password === undefined) {
       return res.json({
         error: false,
-        warning: warning,
+        warning: true,
         message: 'New Password Cannot be Empty',
         content: null
       });
