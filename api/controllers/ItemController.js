@@ -72,18 +72,52 @@ module.exports = {
 
   /* post /item/destroy */
   destroy: function (req, res) {
-    return res.json({
-      error: false,
-      warning: false,
-      message: 'Destroy Item Route',
-      content: null
+    const user    = req.options.user;
+    const itemID  = req.param('itemID');
+
+    // Check this User is Authorised to Update this Item.
+    Item.findOne({ id: itemID })
+    .exec((err, item) => {
+      if (err) {
+        return res.json({
+          error:    true,
+          warning:  false,
+          message:  'Unexpected Server Error',
+          content:  null
+        });
+      }
+      // Check that this User is able to update this Item.
+      const userFlats = user.flats.map(flat => flat.id);
+      if (userFlats.indexOf(item.flat) === -1) {
+        return res.json({
+          error: false,
+          warning: true,
+          message: 'You are not authorised to delete Items on this Flat.',
+          content: null
+        });
+      }
+      else {
+        Item.destroy({ id: itemID })
+        .exec((err) => {
+          if (err) {
+            return res.json(Utils.returnJsonError(err));
+          }
+          else {
+            return res.json({
+              error: false,
+              warning: false,
+              message: 'Item Deleted',
+              content: null
+            });
+          }
+        });
+      }
     });
   },
 
   /* post /item/update */
   update: function (req, res) {
     const user    = req.options.user;
-    const flatID  = req.param('flatID');
     const itemID  = req.param('itemID');
 
     // Check this User is Authorised to Update this Item.
@@ -130,7 +164,86 @@ module.exports = {
           return res.json({
             error:    false,
             warning:  false,
-            message:  'Test Complete',
+            message:  'Updated Item',
+            content:  updatedItem
+          });
+        })
+      }
+    });
+  },
+
+  /* post /item/setstatus */
+  setstatus: function (req, res) {
+    console.log('Setting Status');
+    const user    = req.options.user;
+    const itemID  = req.param('itemID');
+
+    // Check this User is Authorised to Update this Item.
+    Item.findOne({ id: itemID })
+    .exec((err, item) => {
+      if (err) {
+        return res.json({
+          error:    true,
+          warning:  false,
+          message:  'Unexpected Server Error',
+          content:  null
+        });
+      }
+      // Check that this User is able to update this Item.
+      const userFlats = user.flats.map(flat => flat.id);
+      if (userFlats.indexOf(item.flat) === -1) {
+        return res.json({
+          error: false,
+          warning: true,
+          message: 'You are not authorised to update Items on this Flat.',
+          content: null
+        });
+      }
+      else {
+        // Update Cleared & Bumped Attributes
+        const notification  = req.param('notification');
+        let lastBumped      = Math.round(+new Date()/1000);
+        let rota            = item.rota;
+
+        // If the current user has cleared this.
+        if (notification === false) {
+          // Parse and Update Rota
+          rota      = JSON.parse(item.rota);
+          console.log('Rota Before');
+          console.log(rota);
+          const userIndex = rota.indexOf(user.id);
+          const userLast  = (userIndex === rota.length - 1);
+          rota.splice(userIndex, 1);
+          // If this user already at the end of rota;
+          if (userLast) {
+            const members = rota.filter((value, index, self) => self.indexOf(value) === index);
+            console.log('members');
+            console.log(members);
+            rota = rota.concat(members);
+          }
+          rota.push(user.id);
+          console.log('Rota After');
+          console.log(rota);
+          rota = JSON.stringify(rota);
+        }
+
+        // Save Changes
+        Item.update({id: itemID}, { notification, lastBumped, rota }).fetch()
+        .exec((err, updatedItem) => {
+          if (err) {
+            console.log(err);
+            return res.json({
+              error:    false,
+              warning:  false,
+              message:  'Unexpected Server Error',
+              content:  err
+            });
+          }
+          console.log(updatedItem);
+          return res.json({
+            error:    false,
+            warning:  false,
+            message:  'Set Item Status',
             content:  updatedItem
           });
         })
