@@ -102,6 +102,28 @@ module.exports.routes = {
     action: 'update'
   },
 
+  // Item Controller
+
+  'post /item/get': {
+    controller: 'ItemController',
+    action: 'get'
+  },
+
+  'post /item/create': {
+    controller: 'ItemController',
+    action: 'create'
+  },
+
+  'post /item/destroy': {
+    controller: 'ItemController',
+    action: 'destroy'
+  },
+
+  'post /item/update': {
+    controller: 'ItemController',
+    action: 'update'
+  },
+
 
   //  ╦ ╦╔═╗╔╗ ╦ ╦╔═╗╔═╗╦╔═╔═╗
   //  ║║║║╣ ╠╩╗╠═╣║ ║║ ║╠╩╗╚═╗
