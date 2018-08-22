@@ -152,7 +152,6 @@ module.exports = {
         Item.update({id: itemID}, {rota: JSON.stringify(rota)}).fetch()
         .exec((err, updatedItem) => {
           if (err) {
-            console.log(err);
             return res.json({
               error:    false,
               warning:  false,
@@ -160,7 +159,6 @@ module.exports = {
               content:  err
             });
           }
-          console.log(updatedItem);
           return res.json({
             error:    false,
             warning:  false,
@@ -174,7 +172,6 @@ module.exports = {
 
   /* post /item/setstatus */
   setstatus: function (req, res) {
-    console.log('Setting Status');
     const user    = req.options.user;
     const itemID  = req.param('itemID');
 
@@ -209,21 +206,15 @@ module.exports = {
         if (notification === false) {
           // Parse and Update Rota
           rota      = JSON.parse(item.rota);
-          console.log('Rota Before');
-          console.log(rota);
           const userIndex = rota.indexOf(user.id);
           const userLast  = (userIndex === rota.length - 1);
           rota.splice(userIndex, 1);
           // If this user already at the end of rota;
           if (userLast) {
             const members = rota.filter((value, index, self) => self.indexOf(value) === index);
-            console.log('members');
-            console.log(members);
             rota = rota.concat(members);
           }
           rota.push(user.id);
-          console.log('Rota After');
-          console.log(rota);
           rota = JSON.stringify(rota);
         }
 
@@ -231,7 +222,6 @@ module.exports = {
         Item.update({id: itemID}, { notification, lastBumped, rota }).fetch()
         .exec((err, updatedItem) => {
           if (err) {
-            console.log(err);
             return res.json({
               error:    false,
               warning:  false,
@@ -239,7 +229,6 @@ module.exports = {
               content:  err
             });
           }
-          console.log(updatedItem);
           return res.json({
             error:    false,
             warning:  false,
