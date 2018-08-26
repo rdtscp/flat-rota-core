@@ -107,8 +107,6 @@ module.exports = {
       id: flatID
     }).populateAll()
     .exec((err, flat) => {
-      console.log('Found Flat');
-      console.log(flat);
       if (err) {
         return res.json({
           error:    false,
@@ -119,13 +117,11 @@ module.exports = {
       }
       const filteredMembers = flat.members.filter(member => member.id === user.id);
       if (filteredMembers.length > 0) {
-        console.log('Authd to Delete Flat');
         Flat.destroy({
           id: flatID
         })
         .fetch()
         .exec((err) => {
-        console.log('Deleted Flat');
           if (err) { return res.json(Utils.returnJsonError(err)); }
           return res.json({
             error: false,
@@ -204,7 +200,6 @@ module.exports = {
                 }); 
               })
               .catch(error => {
-                console.log(error);
                 return res.json({
                   error: false,
                   warning: true,
@@ -239,8 +234,6 @@ module.exports = {
   leave: function (req, res) {
     const user    = req.options.user;
     const flatID  = req.param('flatID');
-
-    console.log('User ' + user.id + ' leaving Flat ' + flatID);
 
     // Save Changes
     Flat.findOne({
@@ -279,7 +272,6 @@ module.exports = {
         Flat.removeFromCollection(flat.id, 'members')
         .members(user.id)
         .exec((err, updatedFlat) => {
-          console.log('Removed User From Flat');
           if (err) {
             return res.json({
               error:    false,
@@ -297,7 +289,6 @@ module.exports = {
         });
       })
       .catch(error => {
-        console.log(error);
         return res.json({
           error:    true,
           warning:  false,
