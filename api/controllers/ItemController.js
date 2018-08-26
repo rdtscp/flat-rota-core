@@ -165,7 +165,7 @@ module.exports = {
             message:  'Updated Item',
             content:  updatedItem
           });
-        })
+        });
       }
     });
   },
@@ -235,7 +235,7 @@ module.exports = {
             message:  'Set Item Status',
             content:  updatedItem
           });
-        })
+        });
       }
     });
   }
