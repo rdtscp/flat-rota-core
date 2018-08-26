@@ -18,12 +18,23 @@ module.exports = {
       Flat.findOne({ id })
       .populateAll()
       .then((flat) => {
-        return res.json({
-          error: false,
-          warning: false,
-          message: null,
-          content: flat,
-        });
+        const filteredMembers = flat.members.filter(member => member.id === user.id);
+        if (filteredMembers.length > 0) {
+          return res.json({
+            error: false,
+            warning: false,
+            message: null,
+            content: flat,
+          });
+        }
+        else {
+          return res.json({
+            error: false,
+            warning: true,
+            message: 'You are not authorised to perform this action.',
+            content: null
+          });
+        }
       });
     }
     else {
@@ -94,8 +105,10 @@ module.exports = {
 
     Flat.findOne({
       id: flatID
-    })
+    }).populateAll()
     .exec((err, flat) => {
+      console.log('Found Flat');
+      console.log(flat);
       if (err) {
         return res.json({
           error:    false,
@@ -104,13 +117,15 @@ module.exports = {
           content:  err
         });
       }
-      const rota = JSON.stringify(flat.rota);
-      if (rota.indexOf(user.id) !== -1) {
+      const filteredMembers = flat.members.filter(member => member.id === user.id);
+      if (filteredMembers.length > 0) {
+        console.log('Authd to Delete Flat');
         Flat.destroy({
           id: flatID
         })
         .fetch()
         .exec((err) => {
+        console.log('Deleted Flat');
           if (err) { return res.json(Utils.returnJsonError(err)); }
           return res.json({
             error: false,
@@ -143,54 +158,77 @@ module.exports = {
     .exec((err, newMember) => {
       if (err) { return res.json(Utils.returnJsonError(err)); }
       if (newMember) {
-
+        Flat.findOne({
+          id: flatID
+        })
+        .exec((err, flat) => {
+          if (err) {
+            return res.json({
+              error:    false,
+              warning:  false,
+              message:  'Unexpected Server Error',
+              content:  err
+            });
+          }
+          const filteredMembers = flat.members.filter(member => member.id === user.id);
+          if (filteredMembers.length > 0) {
+            Flat.addToCollection(flatID, 'members')
+            .members(newMemberID)
+            .exec((err, updatedFlat) => {
+              if (err) { return res.json(Utils.returnJsonError(err)); }
+              const itemRotasUpdated = flat.items.map((item) => {
+                new Promise((resolve, reject) => {
+                  Item.findOne({
+                    id: item.id
+                  })
+                  .exec((err, item) => {
+                    if (err) { reject(); }
+                    const rota = JSON.stringify(item.rota);
+                    rota.unshift(newMember.id);
+                    Item.update({id: item.id}, {rota: rota}).fetch()
+                    .exec((err, updatedItem) => {
+                      if (err) { reject(); }
+                      resolve(updatedItem);
+                    });
+                  });
+                });    
+              });
+        
+              Promise.all(itemRotasUpdated)
+              .then((items) => {
+                return res.json({
+                  error: false,
+                  warning: false,
+                  message: 'Added User to Flat',
+                  content: null
+                }); 
+              })
+              .catch(error => {
+                console.log(error);
+                return res.json({
+                  error: false,
+                  warning: true,
+                  message: 'Error Adding User to Item Rotas',
+                  content: null
+                });
+              });
+            });
+          }
+          else {
+            return res.json({
+              error: false,
+              warning: true,
+              message: 'You are not authorised to perform this action.',
+              content: null
+            });
+          }
+        });
       }
       else {
         return res.json({
           error: false,
           warning: true,
           message: 'The user requested does not exist.',
-          content: updatedFlat
-        });
-      }
-    });
-    Flat.findOne({
-      id: flatID
-    })
-    .exec((err, flat) => {
-      if (err) {
-        return res.json({
-          error:    false,
-          warning:  false,
-          message:  'Unexpected Server Error',
-          content:  err
-        });
-      }
-      const rota = JSON.stringify(flat.rota);
-      if (oldRota.indexOf(user.id) !== -1) {
-        rota.unshift(newMemberID);
-        Flat.update({ id: flatID }, { rota })
-        .fetch()
-        .exec((err) => {
-          if (err) { return res.json(Utils.returnJsonError(err)); }
-          Flat.addToCollection(flatID, 'members')
-          .members(newMemberID)
-          .exec((err, updatedFlat) => {
-            if (err) { return res.json(Utils.returnJsonError(err)); }
-            return res.json({
-              error: false,
-              warning: false,
-              message: 'Member Added',
-              content: updatedFlat
-            });
-          });
-        });
-      }
-      else {
-        return res.json({
-          error: false,
-          warning: true,
-          message: 'You are not authorised to perform this action.',
           content: null
         });
       }
@@ -202,10 +240,12 @@ module.exports = {
     const user    = req.options.user;
     const flatID  = req.param('flatID');
 
+    console.log('User ' + user.id + ' leaving Flat ' + flatID);
+
     // Save Changes
     Flat.findOne({
       id: flatID
-    })
+    }).populateAll()
     .exec((err, flat) => {
       if (err) {
         return res.json({
@@ -215,20 +255,31 @@ module.exports = {
           content:  err
         });
       }
-      const oldRota = JSON.stringify(flat.rota);
-      Flat.update({ id: flat.id }, { rota: oldRota.filter(elem => elem !== user.id)}).fetch()
-      .exec((err, intermediateFlat) => {
-        if (err) {
-          return res.json({
-            error:    false,
-            warning:  false,
-            message:  'Unexpected Server Error',
-            content:  err
+
+      const itemRotasUpdated = flat.items.map((item) => {
+        new Promise((resolve, reject) => {
+          Item.findOne({
+            id: item.id
+          })
+          .exec((err, item) => {
+            if (err) { reject(); }
+            const oldRota = JSON.stringify(item.rota);
+            const newRota = oldRota.filter(elem => elem !== user.id);
+            Item.update({id: item.id}, {rota: newRota}).fetch()
+            .exec((err, updatedItem) => {
+              if (err) { reject(); }
+              resolve(updatedItem);
+            });
           });
-        }
-        Flat.removeFromCollection(intermediateFlat.id, 'members')
+        });    
+      });
+
+      Promise.all(itemRotasUpdated)
+      .then((items) => {
+        Flat.removeFromCollection(flat.id, 'members')
         .members(user.id)
         .exec((err, updatedFlat) => {
+          console.log('Removed User From Flat');
           if (err) {
             return res.json({
               error:    false,
@@ -244,15 +295,16 @@ module.exports = {
             content:  updatedFlat
           });
         });
+      })
+      .catch(error => {
+        console.log(error);
+        return res.json({
+          error:    true,
+          warning:  false,
+          message:  'Error Leaving Flat',
+          content:  null
+        });
       });
-    });
-    
-
-    return res.json({
-      error: true,
-      warning: false,
-      message: 'Unknown Server Error, Please Refresh & Try Again',
-      content: null
     });
   },
 
