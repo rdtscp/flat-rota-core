@@ -42,6 +42,7 @@ module.exports.routes = {
   //  ╩ ╩╩  ╩  ╚═╝╝╚╝═╩╝╩  ╚═╝╩╝╚╝ ╩ ╚═╝
 
   // Device Controller
+  
   'post /device/get': {
     controller: 'DeviceController',
     action: 'get'
