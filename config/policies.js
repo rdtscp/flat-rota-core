@@ -20,18 +20,21 @@ module.exports.policies = {
   // '*': true,
 
   UserController: {
-    get: 'SessionAuth',
-    update: 'SessionAuth',
-    destroy: 'SessionAuth'
+    get:      'SessionAuth',
+    update:   'SessionAuth',
+    destroy:  'SessionAuth'
   },
 
   DeviceController: {
-    destroy: 'SessionAuth'
+    destroy:  'SessionAuth'
   },
 
   FlatController: {
-    get:    'SessionAuth',
-    create: 'SessionAuth',
+    get:      'SessionAuth',
+    create:   'SessionAuth',
+    update:   'SessionAuth',
+    destroy:  'SessionAuth',
+    leave:    'SessionAuth',
   },
 
   ItemController: {

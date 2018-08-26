@@ -42,7 +42,6 @@ module.exports.routes = {
   //  ╩ ╩╩  ╩  ╚═╝╝╚╝═╩╝╩  ╚═╝╩╝╚╝ ╩ ╚═╝
 
   // Device Controller
-
   'post /device/get': {
     controller: 'DeviceController',
     action: 'get'
@@ -100,6 +99,11 @@ module.exports.routes = {
   'post /flat/update': {
     controller: 'FlatController',
     action: 'update'
+  },
+
+  'post /flat/leave': {
+    controller: 'FlatController',
+    action: 'leave'
   },
 
   // Item Controller
