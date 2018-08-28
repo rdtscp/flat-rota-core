@@ -148,8 +148,6 @@ module.exports = {
     const flatID              = req.param('flatID');
     const newMembersUsernames = req.param('newMembersUsernames');
 
-    console.log(newMembersUsernames);
-
     Flat.findOne({ id: flatID })
     .populateAll()
     .then(flat => {
@@ -171,7 +169,6 @@ module.exports = {
             const newMembersIds = newMembers.map(user => user.id);
             Flat.addToCollection(flat.id, 'members').members(newMembersIds)
             .then(updatedFlat => {
-              console.log(updatedFlat);
               return res.json({
                 error:    false,
                 warning:  false,
