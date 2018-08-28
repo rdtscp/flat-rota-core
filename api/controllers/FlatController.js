@@ -146,16 +146,54 @@ module.exports = {
   update: function (req, res) {
     const user                = req.options.user;
     const flatID              = req.param('flatID');
-    const newMembersUsernames  = req.param('newMembersUsernames');
+    const newMembersUsernames = req.param('newMembersUsernames');
 
     console.log(newMembersUsernames);
 
-    return res.json({
-      error:    false,
-      warning:  false,
-      message:  'Testing Complete',
-      content:  null
+    Flat.findOne({ id: flatID })
+    .populateAll()
+    .then(flat => {
+      const authorised = (flat.members.filter(member => member.id === user.id)).length > 0;
+      if (authorised) {
+        // Get All Users.
+        const newMembersUsers = newMembersUsernames.map(username => new Promise((resolve, reject) => User.findOne({username: username}).then(user => resolve(user)).catch(error => reject())));
+        Promise.all(newMembersUsers)
+        .then(newMembers => {
+          const rotasUpdated = flat.items.map(item => new Promise(resolve => {
+            const rota    = JSON.parse(item.rota);
+            newMembers.forEach(newMember => {
+              rota.unshift(newMember.id);
+            });
+            Item.update({ id: item.id }, {rota: JSON.stringify(rota)}).fetch().then(updatedItem => resolve(updatedItem));
+          }));
+          Promise.all(rotasUpdated)
+          .then(updatedItems => {
+            const newMembersIds = newMembers.map(user => user.id);
+            Flat.addToCollection(flat.id, 'members').members(newMembersIds)
+            .then(updatedFlat => {
+              console.log(updatedFlat);
+              return res.json({
+                error:    false,
+                warning:  false,
+                message:  'Updated Flat',
+                content:  updatedFlat
+              });
+            });
+          });
+        });
+        
+      }
+    })
+    .catch(error => {
+      return res.json({
+        error:    false,
+        warning:  false,
+        message:  'Unexpected Error',
+        content:  null
+      });
     });
+
+    
 
     // User.findOne({
     //   username: newMemberUsername
